@@ -1,7 +1,7 @@
 var inquirer = require("inquirer");
 var isLetter = require("is-letter");
 
-var Word = require("./word.js");
+var Assist = require("./assist.js");
 var newWord = {
   wordList: ["OZZY", "POISON", "METALLICA", "JOURNEY"],
   hangman: [
@@ -25,43 +25,41 @@ var lettersPicked = [];
 var display = 0;
 var currentWord;
 
-beginGame();
-
 function beginGame() {
   console.log("Welcome to 80's RockHangman!");
   if (lettersPicked.length > 0) {
     lettersPicked = [];
   }
 
+  function newGame() {
+    if (guessesLeft == 10) {
+      var randNum = Math.floor(Math.random() * wordBank.length);
+      currentWord = new Word(wordBank[randNum]);
+      currentWord.getLetters();
+      console.log(currentWord.wordRender());
+      promptUser();
+    } else {
+      resetGuessesLeft();
+      newGame();
+    }
+  }
+
   inquirer
     .prompt([
       {
-        name: "play",
+        name: "start",
         type: "confirm",
-        message: "Ready to play?",
+        message: "Ready to begin?",
       },
     ])
     .then(function(answer) {
-      if (answer.play) {
-        console.log("You get 10 guesses to guess the right 80s rock band.");
+      if (answer.start) {
+        console.log("You have 10 guesses to guess the right 80s rock band.");
         newGame();
       } else {
         console.log("Maybe next time!");
       }
     });
-}
-
-function newGame() {
-  if (guessesLeft === 10) {
-    var randNum = Math.floor(Math.random() * wordBank.length);
-    currentWord = new Word(wordBank[randNum]);
-    currentWord.getLetters();
-    console.log(currentWord.wordRender());
-    promptUser();
-  } else {
-    resetGuessesLeft();
-    newGame();
-  }
 }
 
 function resetGuessesLeft() {
@@ -74,7 +72,7 @@ function promptUser() {
       {
         name: "letterPicked",
         type: "input",
-        message: "Choose a letter",
+        message: "Pick a letter",
         validate: function(value) {
           if (isLetter(value)) {
             return true;
@@ -88,17 +86,17 @@ function promptUser() {
       var letterReturned = ltr.letterPicked.toUpperCase();
       var guessedAlready = false;
       for (var i = 0; i < lettersPicked.length; i++) {
-        if (letterReturned === lettersPicked[i]) {
+        if (letterReturned == lettersPicked[i]) {
           guessedAlready = true;
         }
       }
 
-      if (guessedAlready === false) {
+      if (guessedAlready == false) {
         lettersPicked.push(letterReturned);
 
         var found = currentWord.checkIfLetterFound(letterReturned);
 
-        if (found === 0) {
+        if (found == 0) {
           console.log("Wrong, try again!");
 
           guessesLeft--;
@@ -113,7 +111,7 @@ function promptUser() {
 
           if (currentWord.checkWord() === true) {
             console.log(currentWord.wordRender());
-            console.log("----- YOU WIN -----");
+            console.log("YOU WIN!");
             beginGame();
           } else {
             console.log("Guesses remaining: " + guessesLeft);
@@ -125,7 +123,7 @@ function promptUser() {
         if (guessesLeft > 0 && currentWord.wordFound === false) {
           promptUser();
         } else if (guessesLeft === 0) {
-          console.log("----- GAME OVER -----");
+          console.log("GAME OVER!");
           console.log(
             "The word you were trying to guess was: " + currentWord.word
           );
@@ -136,3 +134,5 @@ function promptUser() {
       }
     });
 }
+
+beginGame();
